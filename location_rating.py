@@ -197,6 +197,8 @@ def create_Table(
 ) -> None:
   """ helper
   """
+  table_Name = "locations_ratings"
+  
   with psycopg2.connect( 
     # "dbname=test user=postgres"
     connection_Str 
@@ -207,19 +209,23 @@ def create_Table(
     
     with connection.cursor() as cursor:
       
+      # psycopg2.ProgrammingError: relation "locations_ratings" already exists
       # if not present 
       # create a new table with a single column called "name"
-      cursor\
-        .execute(
-          """CREATE TABLE locations_ratings 
-          ( 
-            latitude char(10), 
-            longitude char(10), 
-            location text, 
-            restaurant_name text, 
-            rating text 
-          );"""
-        )
+      try:
+        cursor\
+          .execute(
+            """CREATE TABLE locations_ratings 
+            ( 
+              latitude char(10), 
+              longitude char(10), 
+              location text, 
+              restaurant_name text, 
+              rating text 
+            );"""
+          )
+      except psycopg2.ProgrammingError as pe:  
+        print( f"when creating {table_Name} got: {pe}" )
 
   return None 
 

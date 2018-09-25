@@ -107,9 +107,23 @@ class Test_Helpers( unittest.TestCase ):
     , cursor_factory = NamedTupleConnection 
     ) as connection:
 
+      self.assertIsInstance(
+        #  obj
+          connection 
+        #, cls
+        , psycopg2.extensions.connection
+        )
+        
       connection.set_session( autocommit = True )
 
       with connection.cursor() as cursor:
+
+        self.assertIsInstance(
+          #  obj
+            cursor 
+          #, cls
+          , psycopg2.extensions.connection.cursor
+          )
 
         cursor.execute( "select * from locations_ratings;" )
 
