@@ -40,6 +40,7 @@ import logging
 from urllib import request as Request
 from urllib.request import urlopen as URL_Open
 import json
+import os
 #
 #
 """location_rating.py:
@@ -147,6 +148,12 @@ $ python -m json.tool toDo.json
 
 # syntax check 
 #$ pyflakes location_rating.py
+# to discover and check all in current | root directory: 
+#$ python3 -m pyflakes .
+# to discover and check all in 'tests' directory: 
+#$ python3 -m pyflakes tests
+# to filter issues:
+$ python3 -m pyflakes . | grep "undefined"
 
 """
 
@@ -184,6 +191,37 @@ def getMovieTitles( substr: str ) -> List[ str ]:
     else:
       print( "failed to extract 'data' field from `obj_JSON`" )
       return [ "failed to get movie's Titles from `HTTPResponse`" ]
+
+def create_Table(
+  connection_Str: str = "dbname=test_db"
+) -> None:
+  """ helper
+  """
+  with psycopg2.connect( 
+    # "dbname=test user=postgres"
+    connection_Str 
+  , cursor_factory = psycopg2.extras.NamedTupleCursor
+  ) as connection:
+    
+    connection.set_session( autocommit = True )
+    
+    with connection.cursor() as cursor:
+      
+      # if not present 
+      # create a new table with a single column called "name"
+      cursor\
+        .execute(
+          """CREATE TABLE locations_ratings 
+          ( 
+            latitude char(10), 
+            longitude char(10), 
+            location text, 
+            restaurant_name text, 
+            rating text 
+          );"""
+        )
+
+  return None 
 
 def main(
   connection_Str: str = ""
@@ -231,7 +269,7 @@ def main(
       #cursor.execute("""CREATE TABLE tutorials (name char(40));""")
 
       query_Insert_Into = "INSERT INTO test (field) VALUES($1);"
-      args_Tuple = ( ( 1, ), ) * items_Total_n
+      args_Tuple = ( ( 1, ), ) * 3#items_Total_n
       cursor\
         .execute(
           "INSERT INTO mytable VALUES (%s, %s, %s);"

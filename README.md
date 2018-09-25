@@ -107,7 +107,12 @@ own the server process.
 
 so ( in my case ) just run:
 `$ sudo systemctl start postgresql`
-and then to start [PostgreSQL interactive terminal](https://www.postgresql.org/docs/current/static/app-psql.html):  
+or same but [with restart](https://www.tutorialspoint.com/postgresql/postgresql_environment.htm):
+`$ service postgresql restart`
+or:
+`$ sudo service postgresql restart`
+and then  
+to start [PostgreSQL interactive terminal](https://www.postgresql.org/docs/current/static/app-psql.html):  
 `$ psql`
 inside shell: 
 `<user>=# \?`
