@@ -41,6 +41,7 @@ from urllib import request as Request
 from urllib.request import urlopen as URL_Open
 import json
 import os
+from pprint import pprint, pformat
 #
 #
 """location_rating.py:
@@ -193,21 +194,28 @@ def getMovieTitles( substr: str ) -> List[ str ]:
       return [ "failed to get movie's Titles from `HTTPResponse`" ]
 
 def create_Table(
-  connection_Str: str = "dbname=test_db"
+  #connection_Str: str = "dbname=test_db"
+  connection#: psycopg2.extensions.connection
 ) -> None:
   """ helper
   """
   table_Name = "locations_ratings"
-  
-  with psycopg2.connect( 
+
+  #with psycopg2.connect( 
     # "dbname=test user=postgres"
-    connection_Str 
-  , cursor_factory = psycopg2.extras.NamedTupleCursor
-  ) as connection:
-    
-    connection.set_session( autocommit = True )
-    
-    with connection.cursor() as cursor:
+  #  connection_Str 
+  #, cursor_factory = psycopg2.extras.NamedTupleCursor
+  #) as connection:
+
+  #  connection.set_session( autocommit = True )
+
+  if 1 == 1:
+        
+    # ?!? TypeError: argument 1 must be str, not psycopg2.extensions.connection
+    #!#with connection.cursor() as cursor:
+    with connection.cursor( 
+    # name = "create_Table_Cursor" 
+    ) as cursor:
       
       # psycopg2.ProgrammingError: relation "locations_ratings" already exists
       # if not present 
@@ -215,17 +223,51 @@ def create_Table(
       try:
         cursor\
           .execute(
-            """CREATE TABLE locations_ratings 
+            "CREATE TABLE "
+            # Do not throw an error 
+            # if a relation with the same name already exists. 
+            # A notice is issued in this case. 
+            # Note that there is no guarantee 
+            # that the existing relation is anything 
+            # like the one that would have been created.
+            #?#"IF NOT EXISTS "
+            "locations_ratings "
+            #table_Name
+            # NUMERIC( precision <- total digits: 8, scale <- digits in the fractional part: 6 )
+            #              2 + 6 = 8
+            # "latitude" : 19.793713,
+            # "longitude": 86.513373,
+            # CREATE TABLE test2 (b varchar(5));
+            # INSERT INTO test2 VALUES ('too long'::varchar(5)); -- explicit truncation
+            # character varying(n), varchar(n)	<- variable-length with limit
+            # character(n), char(n)	<- fixed-length, blank padded
+            # text	<- variable unlimited length
+            """
             ( 
-              latitude char(10), 
-              longitude char(10), 
-              location text, 
-              restaurant_name text, 
-              rating text 
+              latitude char(10) NOT NULL, 
+              longitude char(10) NOT NULL, 
+              location text NOT NULL, 
+              restaurant_name text NOT NULL, 
+              rating text NOT NULL,
+              PRIMARY KEY( latitude, longitude ) 
             );"""
           )
       except psycopg2.ProgrammingError as pe:  
         print( f"when creating {table_Name} got: {pe}" )
+
+        try:
+          cursor.execute( f"DROP TABLE {table_Name}" )
+        except Exception as pe:  
+          print( f"when dropping existed {table_Name} table got: {pe}" )
+        else:
+          # recursion 
+          create_Table( connection )  
+        finally:
+          pass     
+      else:
+        pprint( connection.notices )
+      finally:
+        pass     
 
   return None 
 

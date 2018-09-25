@@ -13,6 +13,7 @@ from pprint import pprint, pformat
 import psycopg2
 from psycopg2 import extras
 from psycopg2.extras import NamedTupleConnection
+#?#from psycopg2.extensions import connection as P2_Connection
 #
 #
 @contextmanager
@@ -100,35 +101,67 @@ class Test_Helpers( unittest.TestCase ):
     DSN = 'dbname=test_db'
     table_Name = "locations_ratings"
 
-    create_Table( DSN )
-
+    # psycopg2.connect(dsn=None, connection_factory=None, cursor_factory=None, async=False, **kwargs)
     with psycopg2.connect( 
-      DSN
-    , cursor_factory = NamedTupleConnection 
+      dsn = DSN
+    #?#, cursor_factory = NamedTupleConnection 
+    , cursor_factory = psycopg2.extras.DictCursor
     ) as connection:
 
-      self.assertIsInstance(
-        #  obj
-          connection 
-        #, cls
-        , psycopg2.extensions.connection
+      #>print( "dir( psycopg2.extensions )", dir( psycopg2.extensions ), sep = "\n" )
+      if 1 == 0:
+        print( 
+          "help( psycopg2.extensions.connection )"
+        , help( psycopg2.extensions.connection )
+        , sep = "\n" 
         )
-        
-      connection.set_session( autocommit = True )
+        #> class connection(builtins.object)
 
-      with connection.cursor() as cursor:
-
+      if 1 == 0:
+        # TypeError: isinstance() arg 2 must be a type or tuple of types
+        # AssertionError: 
+        #   <connection object at 0x7fb2081149c8; dsn: 'dbname=test_db', closed: 0> 
+        #   is not an instance of <class 'type'>
         self.assertIsInstance(
           #  obj
-            cursor 
+            connection 
           #, cls
-          , psycopg2.extensions.connection.cursor
+          #!#, psycopg2.extensions.connection
+          #?#, type( psycopg2.extensions.connection )
+          #?#, psycopg2.extensions.connection.__class__
+          #!#, P2_Connection 
+          #!#, object 
+          , int 
           )
+
+      connection.set_session( autocommit = True )
+
+      create_Table( connection )
+    
+      with connection.cursor( 
+      #  name = "test_Cursor" 
+      #?#, cursor_factory = NamedTupleConnection  
+        cursor_factory = psycopg2.extras.NamedTupleCursor
+      ) as cursor:
+
+        if 1 == 0:
+          self.assertIsInstance(
+            #  obj
+              cursor 
+            #, cls
+            #!#, psycopg2.extensions.connection.cursor
+            , psycopg2.extensions.cursor.__class__
+            )
 
         cursor.execute( "select * from locations_ratings;" )
 
         self.assertEqual( cursor.rowcount, 0 )
-        self.assertEqual( cursor.fetchall(), [(10,)] )        
+        self.assertEqual( 
+            cursor.fetchall()
+            , [
+              #( 10, )
+            ] 
+          )        
 
   @unittest.skip("skipping demo")
   def test_Store_State_In_DB_Table( self ):
@@ -137,8 +170,8 @@ class Test_Helpers( unittest.TestCase ):
     print( "Opening ( new ) connection using dsn:", DSN )
 
     if 1 == 0:
-      conn = psycopg2.connect(DSN)
-      print("Encoding for this connection is", conn.encoding)
+      conn = psycopg2.connect( DSN )
+      print( "Encoding for this connection is", conn.encoding )
 
       curs = conn.cursor()
       #>>> cur.execute("CREATE TABLE foo (id serial PRIMARY KEY);")
@@ -155,7 +188,10 @@ class Test_Helpers( unittest.TestCase ):
       conn.commit()
 
       #with self.connect( connection_factory = MyConn ) as conn:
-      with psycopg2.connect( connection_factory = NamedTupleConnection ) as conn:
+      with psycopg2.connect( 
+        DSN
+        #?#connection_factory = NamedTupleConnection 
+      ) as conn:
         curs = conn.cursor()
         curs.execute("insert into test_with values (10)")
 
