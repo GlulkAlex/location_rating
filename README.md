@@ -46,8 +46,8 @@ as well as add packages from the `Pipfile`
 start by [Installing Pipenv](https://docs.pipenv.org/#install-pipenv-today) .
 
 1. Clone / create project repository from public repo:  
-   `$ hg clone https://bitbucket.org/AlexanderGlulkhovtsev/url_api_sql_filter/ my_project`      
-2. Then withing `$ cd my_project`  
+   `$ ? clone https://?`      
+2. Then withing `$ cd <my_project>`  
    Install from Pipfile:  
    `$ pipenv install`
 
@@ -84,10 +84,6 @@ start the application .
    `$ src/db_explorer/db_explorer_main.py`
    Press Ctrl-C (or Ctrl-Break on Windows)  
    to stop the application.  
-3. Then check [the entry point URL:](http://localhost:8080/db/)  
-   or just [http://localhost:8080/](http://localhost:8080/)  
-   in browser  
-   or by `curl`     
 
 `$ sudo apt-get install postgresql-9.6`
 Success. You can now start the database server using:
