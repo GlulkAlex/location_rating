@@ -299,6 +299,69 @@ def create_Table(
 
   return None 
 
+def add_Table_Record(
+  connection#: psycopg2.extensions.connection
+, record: Location_Rating   
+, table_Name = "locations_ratings"
+) -> None:
+  """ helper
+  """
+  with connection.cursor( 
+  #  name = "add_Table_Row_Cursor" 
+  ) as cursor:
+
+    #>>> cur.execute("INSERT INTO %s VALUES (%s)", ('numbers', 10))  # WRONG
+    #>>> cur.execute(                                                # correct
+    #...     SQL("INSERT INTO {} VALUES (%s)").format(Identifier('numbers')),
+    #...     (10,))
+    # mogrify(operation[, parameters])¶
+    #   Return a query string 
+    #   after arguments binding. 
+    #   The string returned 
+    #   is exactly the one 
+    #   that would be sent 
+    #   to the database 
+    #   running the execute() method or similar.
+    # The returned string is always a bytes string.
+    #>>> cur.mogrify("INSERT INTO test (num, data) VALUES (%s, %s)", (42, 'bar'))
+    #"INSERT INTO test (num, data) VALUES (42, E'bar')"
+    try:
+      if 1 == 0:
+        print(
+          "mogrify:"
+        , cursor\
+            .mogrify(
+              f"INSERT INTO {table_Name} VALUES (%s, %s, %s, %s, %s);"
+            , record
+            )
+        , sep = " "    
+        ) 
+        #>mogrify: b"INSERT INTO locations_ratings VALUES 
+        # ('59.434', '24.7378113', 'CPMR+H2 Tallinn, Estonia', 'Hilton'
+        # , '4.5 of 5 bubbles');"   
+      cursor\
+        .execute(
+          f"INSERT INTO {table_Name} VALUES (%s, %s, %s, %s, %s);"
+          #"INSERT INTO locations_ratings VALUES (%s, %s, %s, %s, %s);"
+        , record
+        #?#, tuple( record )
+        )    
+    except Exception as pe:  
+      # when adding new record: 
+      # Location_Rating(latitude='59.434', longitude='24.7378113'
+      # , location='CPMR+H2 Tallinn, Estonia', restaurant_name='Hilton'
+      #, rating='4.5 of 5 bubbles') 
+      # in locations_ratings table got: 
+      # not all arguments converted during string formatting
+      print( 
+        f"when adding new record: {record} in {table_Name} table got: {pe}" )
+    else:
+      pass 
+    finally:
+      pass     
+
+  return None 
+
 def main(
   connection_Str: str = ""
 ):

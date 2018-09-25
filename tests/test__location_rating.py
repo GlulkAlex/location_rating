@@ -2,6 +2,8 @@ import unittest
 from location_rating import (
   main 
 , create_Table  
+, Location_Rating
+, add_Table_Record
 )
 import sys
 #?#from cStringIO import StringIO
@@ -95,7 +97,7 @@ class Test_Helpers( unittest.TestCase ):
     #s = flo.getvalue()  
     self.assertEqual( "Expected output", flo.getvalue() )
 
-  #@unittest.skip("skipping demo")
+  @unittest.skip("skipping create_Table test")
   def test_Create_DB_Table( self ):
 
     DSN = 'dbname=test_db'
@@ -105,7 +107,8 @@ class Test_Helpers( unittest.TestCase ):
     with psycopg2.connect( 
       dsn = DSN
     #?#, cursor_factory = NamedTupleConnection 
-    , cursor_factory = psycopg2.extras.DictCursor
+    #>, cursor_factory = psycopg2.extras.DictCursor
+    , cursor_factory = psycopg2.extras.NamedTupleCursor
     ) as connection:
 
       #>print( "dir( psycopg2.extensions )", dir( psycopg2.extensions ), sep = "\n" )
@@ -169,6 +172,58 @@ class Test_Helpers( unittest.TestCase ):
             cursor.fetchall()
             , [
               #( 10, )
+            ] 
+          )        
+
+  #@unittest.skip("skipping demo")
+  def test_Add_Row_To_DB_Table( self ):
+
+    DSN = 'dbname=test_db'
+    table_Name = "locations_ratings"
+
+    with psycopg2.connect( 
+      dsn = DSN
+    #>, cursor_factory = psycopg2.extras.DictCursor
+    # fetch*() methods will return named tuples instead of regular tuples
+    # e.g. 
+    # Record(id=1, num=100, data="abc'def")
+    #>, cursor_factory = psycopg2.extras.NamedTupleCursor
+    ) as connection:
+      
+      connection.set_session( autocommit = True )
+
+      record = Location_Rating( 
+        latitude = "59.434", longitude = "24.7378113"
+      , location = "CPMR+H2 Tallinn, Estonia"
+      , restaurant_name = "Hilton"
+      , rating = "4.5 of 5 bubbles"
+      )  
+    
+      with connection.cursor( 
+      #  name = "test_Cursor" 
+      #?#, cursor_factory = NamedTupleConnection  
+      #  cursor_factory = psycopg2.extras.NamedTupleCursor
+      ) as cursor:
+
+        #create_Table( connection )
+        #?#cursor.execute( f"DROP TABLE {table_Name}" )
+        cursor.execute( f"delete from {table_Name}" )
+
+        add_Table_Record( connection, record )
+
+        cursor.execute( "select * from locations_ratings;" )
+
+        self.assertEqual( cursor.rowcount, 1 )
+        self.assertEqual( 
+              [ tuple( sv.rstrip() for sv in row ) for row in cursor.fetchall() ]
+            , [
+              #( 10, )
+              #Record( latitude='59.434    '
+              #, longitude='24.7378113', location='CPMR+H2 Tallinn, Estonia'
+              #, restaurant_name='Hilton', rating='4.5 of 5 bubbles' )
+              #>
+              tuple( record )
+              #?#record 
             ] 
           )        
 
