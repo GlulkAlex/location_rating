@@ -156,6 +156,15 @@ class Test_Helpers( unittest.TestCase ):
         cursor.execute( "select * from locations_ratings;" )
 
         self.assertEqual( cursor.rowcount, 0 )
+
+        # In order to pass a Python object 
+        # to the database 
+        # as query argument you can use the Json adapter:
+        #curs.execute("insert into mytable (jsondata) values (%s)", [Json({'a': 100})])
+        # Reading from the database, 
+        # json and jsonb values 
+        # will be automatically converted 
+        # to Python objects.
         self.assertEqual( 
             cursor.fetchall()
             , [

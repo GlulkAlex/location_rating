@@ -158,6 +158,31 @@ $ python3 -m pyflakes . | grep "undefined"
 
 """
 
+class Location_Rating( NamedTuple ):
+    """ Represents a row | record 
+    in 'locations_ratings' table . 
+
+    location_Rating = Location_Rating( 
+      latitude = "59.434", longitude = "24.7378113"
+    , location = "CPMR+H2 Tallinn, Estonia"
+    , restaurant_name = "Hilton"
+    , rating = "4.5 of 5 bubbles"
+    )
+    """
+    #from decimal import *
+    # Decimal <=> numeric
+    #>>> Decimal('3.14')
+    #Decimal('3.14')
+    #>>> Decimal((0, (3, 1, 4), -2))
+    #Decimal('3.14')
+    # NUMERIC( 8, 6 )
+    latitude: str # char(10) NOT NULL, 
+    longitude: str # char(10) NOT NULL, 
+    location: str # text NOT NULL, 
+    restaurant_name: str # text NOT NULL, 
+    rating: str # text NOT NULL,
+    #PRIMARY KEY( latitude, longitude )
+
 def getMovieTitles( substr: str ) -> List[ str ]:
   """
   """
@@ -200,6 +225,9 @@ def create_Table(
   """ helper
   """
   table_Name = "locations_ratings"
+
+  #class psycopg2.extras.LoggingConnection
+  #  A connection that logs all queries to a file or logger object.
 
   #with psycopg2.connect( 
     # "dbname=test user=postgres"
