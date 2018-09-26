@@ -5,8 +5,10 @@ from location_rating import (
 , create_Table  
 , Location_Rating
 , add_Table_Record
+, get_Location_Rating 
 )
 import sys
+import os
 #?#from cStringIO import StringIO
 from io import StringIO
 from contextlib import contextmanager
@@ -84,7 +86,7 @@ class Test_Helpers( unittest.TestCase ):
       self.assertEqual( "Expected output", output )
 
   @unittest.skip("skipping redirect_stdout use test")
-  def test_output_capture_with_redirect_stdout(self):
+  def test__output_capture_with_redirect_stdout(self):
     # file-like object
     flo = (
       #io.\
@@ -98,10 +100,24 @@ class Test_Helpers( unittest.TestCase ):
     #s = flo.getvalue()  
     self.assertEqual( "Expected output", flo.getvalue() )
 
-  @unittest.skip("skipping create_Table test")
-  def test_Create_DB_Table( self ):
+  #@unittest.skip("skipping create_Table test")
+  def test__Get_Connection_DSN( self ):
+    expected_Result = 'dbname=test_db'
+    DSN = get_Connection_DSN()
 
-    DSN = 'dbname=test_db'
+    self.assertEqual( DSN, expected_Result )
+    self.assertEqual( 
+        os.getenv( 
+          "PostgreSQL_Dev_DSN"
+        , default = None 
+        )
+      , expected_Result 
+      )
+
+  @unittest.skip("skipping create_Table test")
+  def test__Create_DB_Table( self ):
+
+    DSN = get_Connection_DSN()#'dbname=test_db'
     table_Name = "locations_ratings"
 
     # psycopg2.connect(dsn=None, connection_factory=None, cursor_factory=None, async=False, **kwargs)
@@ -177,9 +193,9 @@ class Test_Helpers( unittest.TestCase ):
           )        
 
   #@unittest.skip("skipping demo")
-  def test_Add_Row_To_DB_Table( self ):
+  def test__Add_Row_To_DB_Table( self ):
 
-    DSN = 'dbname=test_db'
+    DSN = get_Connection_DSN()
     table_Name = "locations_ratings"
 
     with psycopg2.connect( 
@@ -207,7 +223,10 @@ class Test_Helpers( unittest.TestCase ):
       ) as cursor:
 
         #create_Table( connection )
+        # to remove table:
         #?#cursor.execute( f"DROP TABLE {table_Name}" )
+        # to remove rows:
+        # DELETE FROM products WHERE price = 10;
         cursor.execute( f"delete from {table_Name}" )
 
         add_Table_Record( connection, record )
@@ -229,7 +248,7 @@ class Test_Helpers( unittest.TestCase ):
           )        
 
   @unittest.skip("skipping demo")
-  def test_Store_State_In_DB_Table( self ):
+  def test__Store_State_In_DB_Table( self ):
 
     DSN = 'dbname=test_db'
     print( "Opening ( new ) connection using dsn:", DSN )
@@ -275,3 +294,80 @@ class Test_Helpers( unittest.TestCase ):
       #conn.rollback()
       conn.close()
       #sys.exit(0)
+
+  @unittest.skip("skipping main final test")
+  def test__Get_Location_Rating( self ):
+    """ final test 
+    """
+    flo = StringIO()
+
+    DSN = get_Connection_DSN()
+    table_Name = "locations_ratings"
+
+    with psycopg2.connect( 
+      dsn = DSN
+    #>, cursor_factory = psycopg2.extras.DictCursor
+    # fetch*() methods will return named tuples instead of regular tuples
+    # e.g. 
+    # Record(id=1, num=100, data="abc'def")
+    #>, cursor_factory = psycopg2.extras.NamedTupleCursor
+    ) as connection:
+      
+      connection.set_session( autocommit = True )
+
+      record = Location_Rating( 
+        latitude = "59.434", longitude = "24.7378113"
+      , location = "CPMR+H2 Tallinn, Estonia"
+      , restaurant_name = "Hilton"
+      , rating = "4.5 of 5 bubbles"
+      )  
+    
+      with connection.cursor( 
+      #  name = "test_Cursor" 
+      #?#, cursor_factory = NamedTupleConnection  
+      #  cursor_factory = psycopg2.extras.NamedTupleCursor
+      ) as cursor:
+
+        with redirect_stdout( flo ):
+
+          get_Location_Rating( 
+            record.latitude, record.longitude
+          , record.restaurant_name 
+          )
+
+        #s = flo.getvalue()  
+        self.assertEqual( "Expected output", flo.getvalue() )
+
+        #test_db=# select rating from locations_ratings 
+        #where latitude = '59.434' and longitude = '24.7378113' 
+        #and location = 'CPMR+H2 Tallinn, Estonia';
+        #     rating      
+        #------------------
+        #4.5 of 5 bubbles
+        #(1 row)
+
+        # Named arguments are supported 
+        # using '%(name)s' placeholders in the query 
+        # and specifying the values into a mapping. 
+        # Using named arguments allows 
+        # to specify the values in any order 
+        # and to repeat the same value in several places in the query:
+        cursor.execute( 
+            "select rating "
+            "from locations_ratings "
+            "where "
+            "latitude = %s "
+            "and longitude = %s "
+            "and restaurant_name = %s "
+            ";" 
+          , ( record.latitude, record.longitude, record.restaurant_name )  
+          )
+
+        self.assertEqual( cursor.rowcount, 1 )
+        self.assertEqual( 
+              # Fetch the next row of a query result set, 
+              # returning a single tuple, 
+              # or None when no more data is available:
+              cursor.fetchone()
+            , ( record.rating, )
+          )        

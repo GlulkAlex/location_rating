@@ -61,6 +61,7 @@ for example,
 To install PostgreSQL on Ubuntu,  
 use the apt-get (or other apt-driving) command:
 `$ apt-get install postgresql-10` 
+[PostgreSQL Installation](https://help.ubuntu.com/stable/serverguide/postgresql.html)
 [install PostgreSQL via the apt package manager](https://www.fullstackpython.com/blog/postgresql-python-3-psycopg2-ubuntu-1604.html) 
 `$ createdb test_db` 
 or:  
@@ -77,11 +78,11 @@ start the application .
    `$ pipenv shell`  
    to spawn environment shell (/bin/bash).  
    Use 'exit' to leave.
-2. Next, start the server ( application entry point )  
-   from `src/db_explorer/`:   
-   `$ python db_explorer_main.py`  
+2. Next, start the ? main script ? ( application entry point )  
+   from `src/?/`:   
+   `$ python location_rating.py`  
    or from the project root directory: 
-   `$ src/db_explorer/db_explorer_main.py`
+   `$ src/?/location_rating.py`
    Press Ctrl-C (or Ctrl-Break on Windows)  
    to stop the application.  
 
@@ -100,17 +101,43 @@ Ver Cluster Port Status Owner    Data directory               Log file
 9.5 main    5433 down   postgres /var/lib/postgresql/9.5/main /var/log/postgresql/postgresql-9.5-main.log
 9.6 main    5434 down   postgres /var/lib/postgresql/9.6/main /var/log/postgresql/postgresql-9.6-main.log
 
+to look into PostgreSQL Client Authentication Configuration File:
+`$ sudo cat /etc/postgresql/<version e.g.: 9.6>/main/pg_hba.conf`
+
+[Starting the Database Server](https://www.postgresql.org/docs/9.6/static/server-start.html)
+the server must be run 
+by the PostgreSQL user account 
+and not by root 
+or any other user. 
+Therefore 
+you probably should form your commands using `su postgres -c '...'`. 
+For example:
+`$ su postgres -c 'pg_ctl start -D /usr/local/pgsql/data -l serverlog'`
+
+$ sudo -u postgres /usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/9.6/main -l logfile start
+server starting
+/bin/sh: 1: cannot create logfile: Permission denied
+
 `$ sudo /usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/9.6/main -l logfile start`
 pg_ctl: cannot be run as root
 Please log in (using, e.g., "su") as the (unprivileged) user that will
 own the server process.
 
+`$ su postgres -c "/usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/9.6/main -l logfile start"`
+and
+`$ sudo su -c "/usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/9.6/main -l logfile start" <user>`
+pg_ctl: could not open PID file "/var/lib/postgresql/9.6/main/postmaster.pid": Permission denied
+
 so ( in my case ) just run:
 `$ sudo systemctl start postgresql`
+or:
+`$ sudo systemctl restart postgresql.service`
 or same but [with restart](https://www.tutorialspoint.com/postgresql/postgresql_environment.htm):
 `$ service postgresql restart`
 or:
 `$ sudo service postgresql restart`
+this also works:
+`$ <sudo> service postgresql start`
 and then  
 to start [PostgreSQL interactive terminal](https://www.postgresql.org/docs/current/static/app-psql.html):  
 `$ psql`
@@ -125,6 +152,10 @@ List of relations:
 
 ## How to Test:  
 
+to discover all available tests from parent | root folder:
+`$ python -m unittest discover`
+
+If `py.test` is installed:
 `$ py.test -q`  
 To run | execute specific test only:  
 `$ py.test tests/test_functional.py`  

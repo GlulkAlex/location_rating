@@ -254,7 +254,7 @@ def get_Connection_DSN() -> str:
   if DSN is None:
   
     DSN = 'dbname=test_db'
-    os.getenv[ 'PostgreSQL_Dev_DSN' ] = DSN  
+    os.environ[ 'PostgreSQL_Dev_DSN' ] = DSN  
 
   return DSN
 
@@ -285,6 +285,17 @@ def create_Table(
     # name = "create_Table_Cursor" 
     ) as cursor:
       
+      # Attempting to drop a table 
+      # that does not exist is an error. 
+      # Nevertheless, 
+      # it is common in SQL script files 
+      # to unconditionally try to drop each table 
+      # before creating it, 
+      # ignoring any error messages, 
+      # so that the script works 
+      # whether or not the table exists.
+      
+      print( f"About to create new '{table_Name}' table" )
       # psycopg2.ProgrammingError: relation "locations_ratings" already exists
       # if not present 
       # create a new table with a single column called "name"
@@ -317,22 +328,26 @@ def create_Table(
               location text NOT NULL, 
               restaurant_name text NOT NULL, 
               rating text NOT NULL,
-              PRIMARY KEY( latitude, longitude ) 
+              PRIMARY KEY( latitude, longitude, restaurant_name ) 
             );"""
           )
       except psycopg2.ProgrammingError as pe:  
-        print( f"when creating {table_Name} got: {pe}" )
+        print( f"When creating '{table_Name}' got: {pe}" )
 
         try:
+          print( f"About to drop existing '{table_Name}' table" )
           cursor.execute( f"DROP TABLE {table_Name}" )
         except Exception as pe:  
-          print( f"when dropping existed {table_Name} table got: {pe}" )
+          print( f"When dropping existed '{table_Name}' table got: {pe}" )
         else:
           # recursion 
+          print( f"Existing '{table_Name}' table was successfully dropped" )
+          print( f"About to recursively retry to create new '{table_Name}' table" )
           create_Table( connection )  
         finally:
           pass     
       else:
+        print( f"New '{table_Name}' table was successfully created" )
         pprint( connection.notices )
       finally:
         pass     
@@ -350,6 +365,7 @@ def add_Table_Record(
   #  name = "add_Table_Row_Cursor" 
   ) as cursor:
 
+    print( f"About to insert values into new row in '{table_Name}' table" )
     #>>> cur.execute("INSERT INTO %s VALUES (%s)", ('numbers', 10))  # WRONG
     #>>> cur.execute(                                                # correct
     #...     SQL("INSERT INTO {} VALUES (%s)").format(Identifier('numbers')),
@@ -394,9 +410,10 @@ def add_Table_Record(
       # in locations_ratings table got: 
       # not all arguments converted during string formatting
       print( 
-        f"when adding new record: {record} in {table_Name} table got: {pe}" )
+        f"When adding new record: {record} in {table_Name} table got: {pe}" )
     else:
       pass 
+      print( f"Values were successfully inserted into new row in '{table_Name}' table" )
     finally:
       pass     
 
@@ -410,7 +427,7 @@ def convert_Coordinates_To_Location(
   """"""
   return ""
 
-get_Location_Rating = lambda la, lo: None 
+get_Location_Rating = lambda la, lo, f_name: None 
 
 def main(
   connection_Str: str = ""
@@ -420,16 +437,7 @@ def main(
   if connection_Str == "":
     # Define | initialize to default connection string
     # DSN
-    connection_Str = (
-      (
-        #"host='localhost' " + 
-        "dbname={} user={}"# +
-        #" password={}"
-      ).format(
-        user, user
-        #, "indent"
-      )
-    )
+    connection_Str = get_Connection_DSN()
   #
   # print the connection string we will use to connect
   print( f"Connecting to database\n\t>{connection_Str}" )
