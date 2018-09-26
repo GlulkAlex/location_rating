@@ -141,6 +141,8 @@ For example,
 will return places to get coffee 
 that are close to the park.
 
+Command line usage | useful commands:
+===
 # to look at | output JSON file prettified content 
 $ python -m json.tool toDo.json
 
@@ -217,6 +219,44 @@ def getMovieTitles( substr: str ) -> List[ str ]:
     else:
       print( "failed to extract 'data' field from `obj_JSON`" )
       return [ "failed to get movie's Titles from `HTTPResponse`" ]
+
+def get_Connection_DSN() -> str:
+  """
+  """
+  #DSN = 'dbname=test_db'
+
+  # environ['HOME'] 
+  # os.getlogin() 
+  # getpass.getuser()
+  #   Return the “login name” of the user.
+  # This function checks the environment variables 
+  # LOGNAME, USER, LNAME and USERNAME, in order, 
+  # and returns the value 
+  # of the first one 
+  # which is set to a non-empty string. 
+  # If none are set, 
+  # the login name from the password database is returned 
+  # on systems which support the 'pwd' module, 
+  # otherwise, an exception is raised.
+  # In general, 
+  # this function should be preferred over os.getlogin().
+  if 1 == 0:
+    DSN = os.getenv( 
+        "PostgreSQL_Dev_DSN"
+      , default = 'dbname=test_db' 
+      )
+
+  DSN = os.getenv( 
+      "PostgreSQL_Dev_DSN"
+    , default = None 
+    )
+
+  if DSN is None:
+  
+    DSN = 'dbname=test_db'
+    os.getenv[ 'PostgreSQL_Dev_DSN' ] = DSN  
+
+  return DSN
 
 def create_Table(
   #connection_Str: str = "dbname=test_db"
@@ -362,19 +402,23 @@ def add_Table_Record(
 
   return None 
 
+def convert_Coordinates_To_Location(
+  # coordinates
+  latitude: str # Decimal 
+, longitude: str # Decimal 
+) -> str:
+  """"""
+  return ""
+
+get_Location_Rating = lambda la, lo: None 
+
 def main(
   connection_Str: str = ""
 ):
   """
   """
   if connection_Str == "":
-    # Define|initialize to default connection string
-    user = os.getenv( 
-      #key, 
-      # { b'USER', b'LOGNAME' }
-      "LOGNAME",
-      default = None 
-    )
+    # Define | initialize to default connection string
     # DSN
     connection_Str = (
       (

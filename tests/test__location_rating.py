@@ -1,6 +1,7 @@
 import unittest
 from location_rating import (
   main 
+, get_Connection_DSN   
 , create_Table  
 , Location_Rating
 , add_Table_Record
