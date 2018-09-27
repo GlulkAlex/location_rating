@@ -315,7 +315,9 @@ def web_Driver_Context(
     'chrome': Driver_Option( 
         driver = webdriver.Chrome
       , options = { 
-          'chrome_options': webdriver.ChromeOptions()
+          # DeprecationWarning: use options instead of chrome_options
+          #?#'chrome_options'
+          'options': webdriver.ChromeOptions()
         } 
       )
   }
@@ -323,8 +325,9 @@ def web_Driver_Context(
     driver_Factory
   , driver_Options 
   ) = driver_Config_Map.get( driver_Name )
-  # acquire resource:
+  driver = None
 
+  # acquire resource:
   try:
     # This iterator must yield exactly one value, 
     # which will be bound 
@@ -334,7 +337,17 @@ def web_Driver_Context(
 
     #if headless:
       #options
-    driver_Options.set_headless( headless = headless )
+    # DeprecationWarning: use setter for headless property instead of set_headless  
+    #>print( "dir( driver_Options[ 'options' ] ):", dir( driver_Options[ "options" ] ) )
+    #tuple( driver_Options
+    #  .values() )[0]\
+    driver_Options[ "options" ].headless = headless 
+      # Options -> self.headless = headless 
+      # class property(fget=None, fset=None, fdel=None, doc=None)
+      # @headless.setter
+      #?#.set_headless( headless = headless )
+      # 'Options' object has no attribute 'setter' 
+      #!#.setter( headless = headless ) 
 
     # driver = webdriver.Firefox( firefox_options = options )
     driver = driver_Factory( 
@@ -348,8 +361,9 @@ def web_Driver_Context(
 
     yield driver
   finally:
-    # release resource:   
-    driver.quit() 
+    # release resource: 
+    if driver is not None:  
+      driver.quit() 
 
 def getMovieTitles( substr: str ) -> List[ str ]:
   """
@@ -598,9 +612,11 @@ def use_Location_Rating_Service(
   # coordinates
 #  latitude: str # Decimal 
 #, longitude: str # Decimal 
+, headless: bool = True 
 ) -> Location_Rating:#str:
   """"""
   with web_Driver_Context( 
+    headless = headless
   ) as driver:
 
     #logger.debug( f"driver.get( {url} )" )
@@ -610,7 +626,7 @@ def use_Location_Rating_Service(
       pass 
       #logger.error( 
       print(
-        f"While getting page from the web `{url}`: {e}" 
+        f"While getting page from the web `{service_Url}`: {e}" 
       , file = sys.stderr#stdout  
       )
     else:
@@ -653,7 +669,7 @@ def use_Location_Rating_Service(
     # element.submit()  
     input_Search_Text.submit()
       
-  return ""
+  return True#""
 
 def main(
   longitude: str 

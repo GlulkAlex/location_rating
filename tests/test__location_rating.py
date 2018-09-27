@@ -6,6 +6,7 @@ from location_rating import (
 , Location_Rating
 , add_Table_Record
 , get_Location_Rating 
+, use_Location_Rating_Service 
 )
 import sys
 import os
@@ -100,7 +101,7 @@ class Test_Helpers( unittest.TestCase ):
     #s = flo.getvalue()  
     self.assertEqual( "Expected output", flo.getvalue() )
 
-  #@unittest.skip("skipping create_Table test")
+  @unittest.skip( "skipping get DB connection config settings from local environment test" ) 
   def test__Get_Connection_DSN( self ):
     expected_Result = 'dbname=test_db'
     DSN = get_Connection_DSN()
@@ -192,7 +193,7 @@ class Test_Helpers( unittest.TestCase ):
             ] 
           )        
 
-  #@unittest.skip("skipping demo")
+  @unittest.skip("skipping insert data to DB table test")
   def test__Add_Row_To_DB_Table( self ):
 
     DSN = get_Connection_DSN()
@@ -247,53 +248,10 @@ class Test_Helpers( unittest.TestCase ):
             ] 
           )        
 
-  @unittest.skip("skipping demo")
-  def test__Store_State_In_DB_Table( self ):
+  #@unittest.skip("skipping demo")
+  def test__Use_Location_Rating_Service( self ):
 
-    DSN = 'dbname=test_db'
-    print( "Opening ( new ) connection using dsn:", DSN )
-
-    if 1 == 0:
-      conn = psycopg2.connect( DSN )
-      print( "Encoding for this connection is", conn.encoding )
-
-      curs = conn.cursor()
-      #>>> cur.execute("CREATE TABLE foo (id serial PRIMARY KEY);")
-      #>>> pprint(conn.notices)
-      try:
-        curs.execute("CREATE TABLE test_copy (fld1 text, fld2 text, fld3 int4)")
-      except:
-        # if exist already 
-        conn.rollback()
-        curs.execute("DROP TABLE test_copy")
-        # to enforce table structure | schema 
-        curs.execute("CREATE TABLE test_copy (fld1 text, fld2 text, fld3 int4)")
-
-      conn.commit()
-
-      #with self.connect( connection_factory = MyConn ) as conn:
-      with psycopg2.connect( 
-        DSN
-        #?#connection_factory = NamedTupleConnection 
-      ) as conn:
-        curs = conn.cursor()
-        curs.execute("insert into test_with values (10)")
-
-      curs = self.conn.cursor()
-      curs.execute("select * from test_with")
-      self.assertEqual(curs.fetchall(), [(10,)])
-
-      # clear table 
-      curs.execute("delete from test_copy")
-      conn.commit()
-      print( "Total number of rows deleted :", curs.rowcount )
-
-      # clear DB from temp data
-      curs.execute("DROP TABLE test_copy")
-      conn.commit()
-      #conn.rollback()
-      conn.close()
-      #sys.exit(0)
+    self.assertTrue( use_Location_Rating_Service( headless = False ) )
 
   @unittest.skip("skipping main final test")
   def test__Get_Location_Rating( self ):
