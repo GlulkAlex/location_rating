@@ -6,9 +6,13 @@ What Is This All About ?
 Implement a Lambda function   
 in a standalone Python module that:  
 * Takes geo coordinates (lat/long)  
-  and 'restaurant name'  
+  and 'restaurant name' ( e.g. Tchaikovsky Restaurant ) 
   as params  
-* Returns Yelp or TripAdviser ( choose one ) 'rating of the location'  
+* Returns  
+  Yelp [Yelp Fusion API FAQ](https://www.yelp.com/developers/faq) 
+  or TripAdviser [API Description](https://developer-tripadvisor.com/content-api/description/) 
+  ( choose one )  
+  'rating of the location'  
 * Prints out  
   and stores the result  
   in any PostgresDB  

@@ -102,19 +102,102 @@ $('span.widget-pane-link')
 # it works with redirect 
 https://www.google.com/maps/place/59.434,24.7378113 
 
+for location search: 
+you should try adding a zip, or try a larger nearby city.
+e.g. near San Francisco, CA
+Try adding a city, state, or zip code.
+
 https://www.tripadvisor.com/
+[API Description](https://developer-tripadvisor.com/content-api/description/)
+Approved users of the TripAdvisor Content API 
+can access the following business details 
+for accommodations, restaurants, and attractions:  
+* Location ID, name, address, latitude & longitude
+* Read reviews link, write-a-review link
+* Overall rating, ranking, subratings, 
+  awards, the number of reviews the rating is based on, 
+  rating bubbles image
+
+document.forms[0].elements
+0: input#mainSearch.text.focusClear
+1: input#GEO_SCOPED_SEARCH_INPUT.text.geoScopeInput.focusClear
+2: button#SEARCH_BUTTON.search_button
+3: input#TYPEAHEAD_GEO_ID
+4: input#TYPEAHEAD_LATITUDE
+5: input#TYPEAHEAD_LONGITUDE
+6: input#TYPEAHEAD_NEARBY
+7: input
+8: input#TOURISM_REDIRECT
+9: input#MASTAHEAD_TYPEAHEAD_START_TIME
+10: input#MASTAHEAD_TYPEAHEAD_UI_ORIGIN
+11: input#MASTHEAD_MAIN_QUERY
+12: input#MASTHEAD_SUPPORTED_SEARCH_TYPES
+13: input#MASTHEAD_ENABLE_NEAR_PAGE
+14: input
+15: input
+16: input#SOCIAL_TYPEAHEAD_2018_FEATURE
+length: 17
+
+TYPEAHEAD_GEO_ID: input#TYPEAHEAD_GEO_ID
+TYPEAHEAD_LATITUDE: input#TYPEAHEAD_LATITUDE
+TYPEAHEAD_LONGITUDE: input#TYPEAHEAD_LONGITUDE
+TYPEAHEAD_NEARBY: input#TYPEAHEAD_NEARBY
+enableNearPage: input#MASTHEAD_ENABLE_NEAR_PAGE
+geo: input#TYPEAHEAD_GEO_ID
+latitude: input#TYPEAHEAD_LATITUDE
+  document.querySelector('input#TYPEAHEAD_LATITUDE').value = "59.434";
+longitude: input#TYPEAHEAD_LONGITUDE
+  document.querySelector('input#TYPEAHEAD_LONGITUDE').value = "24.7378113";
+mainSearch: input#mainSearch.text.focusClear
+pid: input
+q: input#MASTHEAD_MAIN_QUERY
+redirect: input#TOURISM_REDIRECT
+returnTo: input
+searchNearby: input#TYPEAHEAD_NEARBY
+
+supportedSearchTypes: input#MASTHEAD_SUPPORTED_SEARCH_TYPES
+<input id="MASTHEAD_SUPPORTED_SEARCH_TYPES" 
+  type="hidden" name="supportedSearchTypes" 
+  value="find_near_stand_alone_query">
+
 in 
-//*[@id="taplc_trip_search_home_default_0"]/div[2]/div[1]/div/span/input
-#taplc_trip_search_home_default_0 > div.ui_columns.datepicker_box.trip_search.metaDatePicker.rounded_lockup.easyClear.usePickerTypeIcons.hasDates > div.prw_rup.prw_search_typeahead.ui_column.is-3.responsive_inline_priority.search_typeahead.wctx-tripsearch > div > span > input
+xPath: //*[@id="taplc_trip_search_home_default_0"]/div[2]/div[1]/div/span/input
+css_Selector: #taplc_trip_search_home_default_0 > 
+  div.ui_columns.datepicker_box.trip_search.metaDatePicker
+  .rounded_lockup.easyClear.usePickerTypeIcons.hasDates > 
+  div.prw_rup.prw_search_typeahead.ui_column.is-3
+  .responsive_inline_priority.search_typeahead.wctx-tripsearch > 
+  div > span > input
+document.querySelector('input.typeahead_input');
+document.querySelector('input.typeahead_input').value;
+>"Hilton Tallinn Park, Tallinn, Estonia"
+
 type: <location> | 'CPMR+H2 Tallinn, Estonia' + " " or "," + <restaurant name> | "Hilton"
+?!?
+document.getElementById("SEARCH_BUTTON");
+<button id=​"SEARCH_BUTTON" class=​"search_button" 
+  type=​"submit" 
+  onclick= ... >​…​</button>​
+!?!
+
 then:
 xPath: //*[@id="SUBMIT_HOTELS"]
-css: #SUBMIT_HOTELS
+css_Selector: #SUBMIT_HOTELS
+document.getElementById("SUBMIT_HOTELS");
+<button id="SUBMIT_HOTELS" class="form_submit" 
+  onclick="(ta.prwidgets.getjs(this,'handlers')).run('/Hotels')" 
+  tabindex="5">
+    <span class="ui_icon search submit_icon"></span>
+    <span class="submit_text">Find hotels</span>
+</button>
+document.getElementById("SUBMIT_HOTELS").click();
+
 redirect to: 
 https://www.tripadvisor.com/Hotel_Review-g274958-d290521-Reviews-Hilton_Tallinn_Park-Tallinn_Harju_County.html
 Where rating is in:
 //*[@id="taplc_resp_hr_atf_hotel_info_0"]/div/div[1]/div/a/div/span
-#taplc_resp_hr_atf_hotel_info_0 > div > div.ui_column.is-12-tablet.is-10-mobile.hotelDescription > div > a > div > span
+#taplc_resp_hr_atf_hotel_info_0 > div > 
+  div.ui_column.is-12-tablet.is-10-mobile.hotelDescription > div > a > div > span
 <span class="ui_bubble_rating bubble_45" style="font-size:16px;" 
   alt="4.5 of 5 bubbles">
   </span>
@@ -160,6 +243,12 @@ $ python -m json.tool toDo.json
 # to filter issues:
 $ python3 -m pyflakes . | grep "undefined"
 
+# run:
+# to show help message and exit:
+$ location_rating.py --help 
+# or: 
+$ location_rating.py -h  
+
 """
 
 class Location_Rating( NamedTuple ):
@@ -190,7 +279,7 @@ class Location_Rating( NamedTuple ):
 class Driver_Option( NamedTuple ):
   """
   """
-  driver: webdriver = webdriver.Chrome
+  driver: 'WebDriver' = webdriver.Chrome
   # keyargs 
   options: Dict[ str, 'Options' ] = { 'chrome_options': webdriver.ChromeOptions() } 
 
@@ -504,57 +593,83 @@ def convert_Coordinates_To_Location(
   """"""
   return ""
 
-get_Location_Rating = lambda la, lo, f_name: None 
+def use_Location_Rating_Service(
+  service_Url: str = "https://www.tripadvisor.com/"
+  # coordinates
+#  latitude: str # Decimal 
+#, longitude: str # Decimal 
+) -> Location_Rating:#str:
+  """"""
+  with web_Driver_Context( 
+  ) as driver:
+
+    #logger.debug( f"driver.get( {url} )" )
+    try:
+      driver.get( url )
+    except Exception as e:
+      pass 
+      #logger.error( 
+      print(
+        f"While getting page from the web `{url}`: {e}" 
+      , file = sys.stderr#stdout  
+      )
+    else:
+      pass         
+    finally:
+      pass 
+
+    #logger.debug( f"page title: {driver.title}" )  
+    wait = WebDriverWait( driver, 3 #wait_Delay
+      )
+    input_Latitude = wait\
+        .until( 
+          EC
+            #?#.visibility_of_element_located( 
+            .presence_of_element_located(
+            #>.element_to_be_clickable(	
+              driver.find_element_by_id('TYPEAHEAD_LATITUDE')
+              #driver.find_element_by_class_name('c-garage-header__action')
+              #>( By.CLASS_NAME, 'c-garage-header__action' ) 
+              #( By.CSS_SELECTOR, 'div.c-garage-header__action' ) 
+            ) 
+        )  
+
+    #option.get_attribute("value")
+    # driver.execute_script(‘return document.title;’)
+    # document.querySelector('input#TYPEAHEAD_LATITUDE').value = "59.434";
+    #input_Longitude = driver.find_element_by_id('TYPEAHEAD_LONGITUDE')
+    # document.querySelector('input#TYPEAHEAD_LONGITUDE').value = "24.7378113";
+    driver.execute_script( 
+      'document.querySelector("input#TYPEAHEAD_LONGITUDE").value = "24.7378113";' )
+
+    # element.clear()
+    input_Search_Text = driver.find_element_by_css_selector('input.typeahead_input')
+    # element.send_keys("some text")
+    # document.querySelector('input.typeahead_input').value = "Tchaikovsky Restaurant";
+    input_Search_Text.send_keys( "Tchaikovsky Restaurant" )
+
+    # document.getElementById("SUBMIT_HOTELS").click();  
+    # last selected form.element:
+    # element.submit()  
+    input_Search_Text.submit()
+      
+  return ""
 
 def main(
-  connection_Str: str = ""
-):
+  longitude: str 
+, latitude: str
+, restaurant_name: str   
+) -> None:#str:
   """
   """
-  if connection_Str == "":
-    # Define | initialize to default connection string
-    # DSN
-    connection_Str = get_Connection_DSN()
-  #
-  # print the connection string we will use to connect
-  print( f"Connecting to database\n\t>{connection_Str}" )
-
-  # psycopg2.connect(dsn, cursor_factory=NamedTupleCursor)
-  with psycopg2.connect( connection_Str ) as connection:
-    
-    connection\
-      .set_session( autocommit = True )
-    
-    with connection.cursor(
-      cursor_factory = (
-        #psycopg2.extras.DictCursor 
-        psycopg2.extras.NamedTupleCursor
-      )
-    ) as cursor:
-      
-      # if not present 
-      # create a new table with a single column called "name"
-      #cursor.execute("""CREATE TABLE tutorials (name char(40));""")
-
-      query_Insert_Into = "INSERT INTO test (field) VALUES($1);"
-      args_Tuple = ( ( 1, ), ) * 3#items_Total_n
-      cursor\
-        .execute(
-          "INSERT INTO mytable VALUES (%s, %s, %s);"
-        , ( 10, 20, 30 )
-        )
-
-      # class psycopg2.sql.SQL(string)
-      # class psycopg2.sql.Identifier(string)  
-      # to generate dynamically SQL queries 
-      # (for instance choosing dynamically a table name):   
-      #cursor\
-      #  .execute(
-      #    SQL( "INSERT INTO {} VALUES (%s)").format( Identifier('numbers') )
-      #  , ( 10, )
-      #  )  
+  print( 
+    f"longitude: {longitude}, longitude: {longitude}"
+    f", restaurant_name: {restaurant_name}" 
+  )
 
   return None 
+
+get_Location_Rating = lambda la, lo, f_name: None 
 
 ### /// *** unit test *** /// ###
 if __name__ == "__main__":    
@@ -598,22 +713,48 @@ if __name__ == "__main__":
   #  password – password used to authenticate
   #  host – database host address (defaults to UNIX socket if not provided)
   #  port – connection port number (defaults to 5432 if not provided)
-  connection_Str = input( 
-    (
-      "Type Keyword/Value DB connection parameters as \n" + 
-      "host='localhost' dbname='my_database' user='postgres' password='secret'\n" + 
-      "(for some cases user='user_name' will be enough)\n" + 
-      "or just hit `Enter` to use defaults (for current system user):" 
+  if 1 == 0:
+    connection_Str = input( 
+      (
+        "Type Keyword/Value DB connection parameters as \n" + 
+        "host='localhost' dbname='my_database' user='postgres' password='secret'\n" + 
+        "(for some cases user='user_name' will be enough)\n" + 
+        "or just hit `Enter` to use defaults (for current system user):" 
+      )
     )
-  )
   
   #main( items_Total_n, connection_Str )
 
   parser = argparse\
     .ArgumentParser(
-      description = "Extract | scrap cars data from url"
+      description = "Extract | scrap location rating data from public web service"
     )
+  #parser.add_argument( "-C", '--coordinates', nargs = 2, metavar = ( 'longitude', 'latitude' ) )  
+  parser.add_argument( 
+    #?#  "LA"
+      "latitude"
+    , type = str, help = "the location latitude" 
+    )
+  parser.add_argument( 
+    #?#  "LO"
+      "longitude"
+    , type = str, help = "the location longitude" 
+    )
+  parser.add_argument( 
+    #?#  "RN"
+      "restaurant_name"
+    #>  "-RN"
+    #>, "--restaurant_name"
+    #, type = str
+    , help = "the restaurant name to rate" 
+    #>, required = True
+    #, action = 'store'
+    )
+
   args = parser.parse_args()
   
   #parser.print_help()
-  main( **args )
+  main( 
+    # TypeError: main() argument after ** must be a mapping, not Namespace
+    **vars( args ) 
+  )
