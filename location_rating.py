@@ -42,6 +42,8 @@ from urllib.request import urlopen as URL_Open
 import json
 import os
 from pprint import pprint, pformat
+from contextlib import contextmanager
+from enum import Enum#, unique
 #
 #
 """location_rating.py:
@@ -184,6 +186,81 @@ class Location_Rating( NamedTuple ):
     restaurant_name: str # text NOT NULL, 
     rating: str # text NOT NULL,
     #PRIMARY KEY( latitude, longitude )
+
+class Driver_Option( NamedTuple ):
+  """
+  """
+  driver: webdriver = webdriver.Chrome
+  # keyargs 
+  options: Dict[ str, 'Options' ] = { 'chrome_options': webdriver.ChromeOptions() } 
+
+class NoValue(Enum):
+  """
+  """
+  def __repr__(self):
+    return f'<{self.__class__.__name__}.{self.name}>'
+
+class Page_Load_Strategy( NoValue ):
+  """
+  """
+  NONE = 'none'
+  NORMAL = 'normal'
+  EAGER = 'eager'
+
+@contextmanager
+def web_Driver_Context(
+  implicit_Wait: int = 0 # second(s)
+#?#, wait_Delay: int = 3 # second(s)
+, headless: bool = True
+#, driver_i: int = 0  
+, driver_Name: str = "chrome"
+#, page_Load_Strategy: str = "none"
+, page_Load_Strategy: Page_Load_Strategy = Page_Load_Strategy.NONE
+):
+  """
+  """
+  desired_Capabilities_Dic = { 
+    'pageLoadStrategy': page_Load_Strategy.value#[ "none", "normal", 'eager'][0] 
+  }
+  driver_Config_Map = {
+    'chrome': Driver_Option( 
+        driver = webdriver.Chrome
+      , options = { 
+          'chrome_options': webdriver.ChromeOptions()
+        } 
+      )
+  }
+  ( 
+    driver_Factory
+  , driver_Options 
+  ) = driver_Config_Map.get( driver_Name )
+  # acquire resource:
+
+  try:
+    # This iterator must yield exactly one value, 
+    # which will be bound 
+    # to the targets 
+    # in the 'with' statement’s 'as' clause, 
+    # if any.
+
+    #if headless:
+      #options
+    driver_Options.set_headless( headless = headless )
+
+    # driver = webdriver.Firefox( firefox_options = options )
+    driver = driver_Factory( 
+        desired_capabilities = desired_Capabilities_Dic 
+      , **driver_Options 
+      )
+
+    if implicit_Wait > 0:
+
+      driver.implicitly_wait( implicit_Wait )
+
+    yield driver
+  finally:
+    # release resource:   
+    driver.quit() 
 
 def getMovieTitles( substr: str ) -> List[ str ]:
   """
