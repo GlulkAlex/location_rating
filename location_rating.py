@@ -38,11 +38,12 @@ from typing import (
 import argparse
 import logging
 from urllib import request as Request
-from urllib.request import urlopen as URL_Open
+from urllib.request import urlopen as URL_Open  
 import json
 import os
-from pprint import pprint, pformat
-from contextlib import contextmanager
+import sys 
+from pprint import pprint, pformat  
+from contextlib import contextmanager  
 from enum import Enum#, unique
 #
 #
@@ -614,14 +615,47 @@ def use_Location_Rating_Service(
 #, longitude: str # Decimal 
 , headless: bool = True 
 ) -> Location_Rating:#str:
-  """"""
+  """
+  Centrs
+  Central District, Riga, Latvia
+  56.956583, 24.115240
+  https://www.google.ru/maps/place/ + 56.956583, 24.115240 ( ? with escaping ? )
+  X448+J3 Riga, Latvia
+
+  click: Nearby ( button )
+  type: Riits ( restaurant_name )
+  url: https://www.google.ru/maps/place/Riits/@56.95242,24.1199173,17z
+  address: Dzirnavu iela 72, Centra rajons, Rīga, LV-1050, Latvia
+  plus code: X42C+XR Riga, Rīgas pilsēta, Latvia
+
+  click: Nearby ( button )
+  select: hotels 
+  from list of options below pick:
+  `Radisson Blu Latvija Conference & Spa Hotel, Riga` 
+  url: `https://www.google.ru/maps/place/
+    Radisson+Blu+Latvija+Conference+%26+Spa+Hotel,+Riga/
+    @56.9538873,24.0989499,14z/`
+  address: Elizabetes iela 55, Centra rajons, Rīga, LV-1010, Latvia
+  plus code: X449+24 Riga, Rīgas pilsēta, Latvia
+
+  paste to https://www.tripadvisor.com/ search:
+  `Dzirnavu iela 72, Centra rajons, Rīga, LV-1050, Latvia Riits`
+  does not work, it strips address to `Riga, Latvia, Europe`
+  and goes to travel date picker 
+
+  this works ? becuse hotels expected ? 
+  `Radisson Elizabetes iela 55, Centra rajons, Rīga, LV-1010, Latvia` 
+  document.querySelector('span.ui_bubble_rating').getAttribute("alt");
+  "4.5 of 5 bubbles"
+  """
   with web_Driver_Context( 
     headless = headless
   ) as driver:
 
     #logger.debug( f"driver.get( {url} )" )
     try:
-      driver.get( url )
+      driver.set_page_load_timeout( 37 )
+      driver.get( service_Url )
     except Exception as e:
       pass 
       #logger.error( 
@@ -635,7 +669,8 @@ def use_Location_Rating_Service(
       pass 
 
     #logger.debug( f"page title: {driver.title}" )  
-    wait = WebDriverWait( driver, 3 #wait_Delay
+    # element = WebDriverWait(driver, 10).until(lambda x: x.find_element_by_id(“someId”))
+    wait = WebDriverWait( driver, 37 #wait_Delay
       )
     input_Latitude = wait\
         .until( 
@@ -643,7 +678,10 @@ def use_Location_Rating_Service(
             #?#.visibility_of_element_located( 
             .presence_of_element_located(
             #>.element_to_be_clickable(	
-              driver.find_element_by_id('TYPEAHEAD_LATITUDE')
+              # instant, does not wait 
+              #?#driver.find_element_by_id('TYPEAHEAD_LATITUDE')
+              #>
+              ( By.ID, 'TYPEAHEAD_LATITUDE' )
               #driver.find_element_by_class_name('c-garage-header__action')
               #>( By.CLASS_NAME, 'c-garage-header__action' ) 
               #( By.CSS_SELECTOR, 'div.c-garage-header__action' ) 
@@ -665,9 +703,41 @@ def use_Location_Rating_Service(
     input_Search_Text.send_keys( "Tchaikovsky Restaurant" )
 
     # document.getElementById("SUBMIT_HOTELS").click();  
+    button_Submit = WebDriverWait( driver, 7 )\
+      .until( lambda drv: drv.find_element_by_id( "SUBMIT_HOTELS" ) )
+    button_Submit.click()  
     # last selected form.element:
     # element.submit()  
-    input_Search_Text.submit()
+    # selenium.common.exceptions.NoSuchElementException: Message: no such element: 
+    # Element was not in a form, so could not submit.
+    #input_Search_Text.submit()
+    
+    # wait for redirect 
+    WebDriverWait( driver, 17 )\
+      .until( 
+        # a custom Expected Condition
+        lambda drv: drv.current_url != service_Url 
+      )
+    print( "driver.current_url:", driver.current_url ) 
+
+    # document.querySelector('span.ui_bubble_rating').getAttribute("alt");
+    #>"4.5 of 5 bubbles"
+    span_Bubble_Rating = WebDriverWait( driver, 17 )\
+      .until( 
+        #>
+        #lambda drv: drv.find_element_by_class_name( "ui_bubble_rating" ) 
+        #
+        lambda drv: drv.find_element_by_css_selector( "span.ui_bubble_rating" )         
+        #EC
+          #?#.visibility_of_element_located( 
+          #.presence_of_element_located(
+          #>.element_to_be_clickable(	
+          #  ( By.CSS_SELECTOR, 'div.c-garage-header__action' ) 
+          #)
+      )
+
+    location_Rating = span_Bubble_Rating.get_attribute( "alt" ) 
+    print( "location_Rating:", location_Rating ) 
       
   return True#""
 
